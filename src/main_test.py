@@ -9,17 +9,24 @@ from datetime import datetime
 from copy import deepcopy
 # -- Local imports
 from exploration_env import GraphExplorationEnvironment
-from get_files_for_environment_agent import get_env_files
+from get_files_for_environment_agent import get_env_params
+from get_files_for_environment_agent import get_agent_files
 
 
-def main(env_name):
+def main(env_name, agent_name, t_a, t_r0):
     # -- get the environment files
-    env_filenames = get_env_files(env_name)
+    env_params = get_env_params(env_name)
+    agent_priority_filename = get_agent_files(agent_name)
     # -- print the environment files
     print(f"Environment name: {env_name}")
-    for key, filename in env_filenames.items():
+    for key, filename in env_params.items():
         print(f"{key}: {filename}")
     print("-" * 50)
+
+    # print(f"Agent name: {agent_name}")
+    # for key, filename in agent_filenames.items():
+    #     print(f"{key}: {filename}")
+    # print("-" * 50)
 
     # -- set parameters
     # initial position
@@ -27,12 +34,12 @@ def main(env_name):
     # time after whistle
 
     # -- load the environment
-    env = GraphExplorationEnvironment(edges_filename,
-                                      vertextag_filename,
-                                      priority_filename,
-                                      time_before_whistle,
-                                      time_after_whistle,
-                                      init_position)
+    env = GraphExplorationEnvironment(env_params['edges'],
+                                      env_params['vertex_tag'],
+                                      agent_priority_filename,
+                                      t_a, t_r0, env_params['init_pose'])
+    # -- while loop
+    # In each iteration, the output
     # -- initialize visited vertices
 
     # -- initialize flags

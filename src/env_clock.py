@@ -2,7 +2,7 @@
 ====
 Idea
 ====
-The exploration clock are two timers which are set in prior. 
+The exploration clock are t_ao timers which are set in prior. 
 Timer 1 of 2:
     Exploration without time limit clock. This clock is unavailable  to the 
     exploration agent. And the agent only gets to know of it when the 
@@ -21,43 +21,51 @@ Class 'ExplorationClock' handles
 import sys
 
 class ExplorationClock:
-    def __init__(self, tw, tb):
-        # tw is the exploration time before whistle
+    def __init__(self, t_a, t_r_0):
+        # t_a is the exploration time before whistle
         # tb is the exploration time after whistle
-        self.tw = tw
+        self.t_a = t_a
+        self.t_r_0 = t_r_0 # set up initial deadline
+        self.t_r = t_r_0 # set up current deadline as t_r
         self.tb = tb
-        if tw== 0:
+        if t_a== 0:
             self.time_limit_active = True
         else:
             self.time_limit_active = False
     
+    def get_initial_deadline(self):
+        return self.t_r_0
+
+    def get_total_exploration_time(self):
+        return self.t_a + self.t_r_0
+
     def get_time_limit(self):
         if self.time_limit_active:
-            return self.tb
+            return self.t_r
         else:
             return None
     
     def update_time_limit(self):
-        self.tw -= 1
-        if self.tw > 0:
-            #print ("function: update_time_limit: :: tw: {} \ttb: {}".format(self.tw, self.tb))
+        self.t_a -= 1
+        if self.t_a > 0:
+            #print ("function: update_time_limit: :: t_a: {} \ttb: {}".format(self.t_a, self.tb))
             #print ("Time limit active: ", self.time_limit_active)
             return self.get_time_limit()
-        elif self.tw == 0:
+        elif self.t_a == 0:
             #print ("Setting time limit active, no change in tb")
             self.time_limit_active = True
-            #print ("function: update_time_limit: :: tw: {} \ttb: {}".format(self.tw, self.tb))
+            #print ("function: update_time_limit: :: t_a: {} \ttb: {}".format(self.t_a, self.tb))
             #print ("Time limit active: ", self.time_limit_active)
             return self.get_time_limit()
         else:
             self.time_limit_active = True
             #print ("Time limit already active, changing tb")
-            self.tb -= 1
-            #print ("function: update_time_limit: :: tw: {} \ttb: {}".format(self.tw, self.tb))
+            self.t_r -= 1
+            #print ("function: update_time_limit: :: t_a: {} \ttb: {}".format(self.t_a, self.tb))
             #print ("Time limit active: ", self.time_limit_active)
-            if self.tb < 0:
-                print ("Time Limit Exceeded for Tb")
-                #raise ValueError
+            if self.t_r < 0:
+                print ("Time Limit Exceeded for t_r")
+                raise ValueError
             return self.get_time_limit()
     
         

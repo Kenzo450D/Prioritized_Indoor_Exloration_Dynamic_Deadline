@@ -58,15 +58,15 @@ class GraphExplorationEnvironment:
         self.env.set_up_initial_robot_position(self.initial_robot_position)
 
         # -- set up timers
-        self.tw = time_before_whistle
-        self.tb = time_after_whistle
+        self.t_a = time_before_whistle
+        self.t_r_0 = time_after_whistle
         self._set_up_clock()
 
         # -- set up cost
         self.cost_incurred = 0
 
     def _set_up_clock(self):
-        self.exploration_clock = ExplorationClock(self.tw, self.tb)
+        self.exploration_clock = ExplorationClock(self.t_a, self.t_r_0)
 
     def get_state(self):
         cur_pos = self.current_robot_position

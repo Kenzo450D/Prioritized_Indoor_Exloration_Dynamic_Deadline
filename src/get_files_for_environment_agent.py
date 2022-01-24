@@ -23,7 +23,7 @@ def get_env_params(env_name):
         edges_filename = '../resources/environments/looped_corridor/looped_corridor-edges_weighted.txt'
         vtag_filename = '../resources/environments/looped_corridor/looped_corridor-vertex_tags.txt'
         bg_img_filename = '../resources/environments/looped_corridor/rooms.png'
-        init_pose = 40
+        init_pose = 16
 
     elif env_name == 'branched_corridor' or env_name == 'u_corridor' or env_name == 'bc' or env_name == 'uc':
         vertex_map_filename = '../resources/environments/u_corridor_large_room/bc-env_mapping.txt'

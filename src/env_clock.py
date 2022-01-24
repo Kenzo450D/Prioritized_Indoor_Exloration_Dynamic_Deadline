@@ -27,7 +27,6 @@ class ExplorationClock:
         self.t_a = t_a
         self.t_r_0 = t_r_0 # set up initial deadline
         self.t_r = t_r_0 # set up current deadline as t_r
-        self.tb = tb
         if t_a== 0:
             self.time_limit_active = True
         else:
@@ -47,22 +46,14 @@ class ExplorationClock:
     
     def update_time_limit(self):
         self.t_a -= 1
-        if self.t_a > 0:
-            #print ("function: update_time_limit: :: t_a: {} \ttb: {}".format(self.t_a, self.tb))
-            #print ("Time limit active: ", self.time_limit_active)
+        if self.t_a > 0: # time before deadline 
             return self.get_time_limit()
-        elif self.t_a == 0:
-            #print ("Setting time limit active, no change in tb")
+        elif self.t_a == 0: # time before deadline is consumed
             self.time_limit_active = True
-            #print ("function: update_time_limit: :: t_a: {} \ttb: {}".format(self.t_a, self.tb))
-            #print ("Time limit active: ", self.time_limit_active)
             return self.get_time_limit()
         else:
             self.time_limit_active = True
-            #print ("Time limit already active, changing tb")
             self.t_r -= 1
-            #print ("function: update_time_limit: :: t_a: {} \ttb: {}".format(self.t_a, self.tb))
-            #print ("Time limit active: ", self.time_limit_active)
             if self.t_r < 0:
                 print ("Time Limit Exceeded for t_r")
                 raise ValueError

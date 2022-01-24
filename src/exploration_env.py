@@ -2,8 +2,9 @@ from collections import defaultdict
 from copy import deepcopy
 import sys
 # -- local import
-from env_graphs import WeightedGraphEnv
+from weighted_graph_env import WeightedGraphEnv
 from env_clock import ExplorationClock
+from prioritized_greedy_exploration_algorithm import PriorityExplorationAlgorithm
 
 """
 This file handles the entire environment and keeps a track of the explored
@@ -34,13 +35,20 @@ class GraphExplorationEnvironment:
                  vertex_tag_file_name,
                  vertex_priority_file_name,
                  time_before_whistle, time_after_whistle,
-                 initial_robot_position):
+                 init_robot_positions):
         """ Graph Exploration Environment: Creates and maintains the graph exploration environment.
         Input:
             edge_file_name: <string> filename to get the edge information
             vertex_tag_file_name: <string> filename to get the vertex tags (corridor/small_room/large_room)
             time_before_whistle: <int> time after which the deadline is provided to the robot
             time_after_whistle: <int> deadline provided to robot
+        Process:
+            1. Variables: Set up filenames
+            2. Function: Set up the environment
+            3. Variables: Set the robot initial position
+            4. Function: <environment> set up initial position
+            5. Variables: set up timers
+            6. Variables: set up cost incurred.
         """
 
         # -- set up filenames
@@ -50,12 +58,22 @@ class GraphExplorationEnvironment:
 
         # -- initialize the graphs
         print("EXPLORATION ENV: edge file: ", edge_file_name)
+        print("TEST THIS DUMDUM: Vertex priority file name: ", vertex_priority_file_name)
         self.env = WeightedGraphEnv(edge_file_name, vertex_tag_file_name, vertex_priority_file_name)
+        print("EXPLORATION_ENV: Set up the weighted graph environment")
 
         # -- set up the initial robot position
-        self.initial_robot_position = initial_robot_position
-        self.current_robot_position = initial_robot_position
-        self.env.set_up_initial_robot_position(self.initial_robot_position)
+        if type(init_robot_positions) == list:
+            # TODO: Implement multi-robot environment
+            print("Multi-robot environment has not been implemented")
+            print("Only considering first robot position")
+            raise ValueError
+            # initial_robot_position = init_robot_positions[0]
+        else:  # single robot initialization
+            initial_robot_position = init_robot_positions
+            self.initial_robot_position = initial_robot_position
+            self.current_robot_position = initial_robot_position
+            self.env.set_up_initial_robot_position(self.initial_robot_position)
 
         # -- set up timers
         self.t_a = time_before_whistle
@@ -75,7 +93,7 @@ class GraphExplorationEnvironment:
         # -- the current state is a combination of local states and remote nodes towards a direction
         # discovered_vertices = self.env.get_discovered_vertices(cur_pos)
         # local_states = self.env.get_local_nodes_gt(cur_pos)
-        local_states = self.env.get_local_unvisited_nodes_gt(cur_pos)
+        local_states = self.env.get_local_unvisited_vertices_gt(cur_pos)
         local_states = self._convert_local_states_list_to_dict(local_states)
         remote_states = self.env.get_remote_nodes(cur_pos)
         print("EXPLORATION ENV: get_state :: Remote States: {}".format(remote_states))
@@ -83,6 +101,23 @@ class GraphExplorationEnvironment:
         self.remote_states, self.source_remote_states = remote_states
 
         return (cur_pos, local_states, self.remote_states, self.exploration_clock.get_time_limit(), self.cost_incurred)
+
+    def get_exploration_state(self):
+        """ Gets the current state of the exploring robot.
+        Input:
+            None
+        Output:
+            state <dict> curr_pos, explored_graph, time_limit, cost_incurred
+
+        """
+        state = {}
+        state['t_r'] = self.exploration_clock.get_time_limit()
+        state['cost_incurred'] = self.cost_incurred
+        state['current_vertex'] = self.current_robot_position
+        state['explored_graph'] = self.env.graph_explored
+        return state
+
+    #def get_priority_queue(self, explored_graph, )
 
     def _convert_local_states_list_to_dict(self, local_states):
         local_state_dict = {}
@@ -156,7 +191,7 @@ class GraphExplorationEnvironment:
         return self.exploration_clock.get_time_limit()
 
     def get_distance_to_node(self, nodeIdx):
-        return deepcopy(env.distance_all_nodes[nodeIdx])
+        return deepcopy(self.env.distance_all_nodes[nodeIdx])
 
     def get_all_distances_from_home(self, debug_print=True):
         node = self.initial_robot_position

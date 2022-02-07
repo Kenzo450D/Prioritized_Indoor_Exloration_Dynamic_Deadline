@@ -76,9 +76,6 @@ class WeightedGraphEnv:
         # -- initialize the explored graph
         self._initialize_graph_explored()
 
-        # -- make pruned graph
-        # self._make_pruned_graph()
-
         # -- return
         return
 
@@ -645,101 +642,6 @@ class WeightedGraphEnv:
         self.graph_gt = graph_gt
 
         return
-
-    # def _make_pruned_graph(self, debug_print=False):
-    #     """
-    #     consider the nodes which have the least degree, and then start
-    #     deleting them from the graph. Consider the data structure to be a 
-    #     default dict
-    #     1. Initialized prunedGraph as a deep copy of the ground truth graph.
-    #     2. 
-    #     """
-    #     # -- make a function for deep copy
-    #     prunedGraph = self._deep_copy_graph(self.graph_gt)
-    # 
-    #     # -- print the prunedGraph
-    #     if debug_print:
-    #         print("Function: _make_pruned_graph :: Initialized Pruned Graph (Should contain all the nodes and edges)")
-    #         self._print_graph(prunedGraph, "Pruned")
-    #         print("-" * 50)
-    # 
-    #     # -- prune graph
-    #     """
-    #     deleting the nodes during the loop throws an error about the the 
-    #     number of nodes changed within a loop.
-    #     """
-    #     delete_nodes = []  # to save the node indices to be deleted
-    #     while (True):
-    #         # -- initialize number of nodes deleted
-    #         n_deleted = 0
-    #         current_delete_nodes = []  # to store the nodes to be deleted in one iteration
-    # 
-    #         # -- run through the list of nodes in 
-    #         for nodeId, connections in prunedGraph.items():
-    #             # connections are 4 for each node, but the connections leading
-    #             # to the same node means that the connectivity is less than 4
-    #             node_degree = len(connections)
-    #             if debug_print:
-    #                 print("Function: _make_pruned_graph :: Node: {} \t Connections: {}".format(nodeId, connections))
-    #                 print("Function: _make_pruned_graph :: Node: {} \t Degree: {}".format(nodeId, node_degree))
-    #                 print("- " * 30)
-    # 
-    #             # -- go through each of the connections from the node, to ensure that the
-    #             # current node has no references to previous deleted nodes
-    #             delete_connections = []
-    #             for connection_idx, connection_node in enumerate(connections):
-    #                 if connection_node[0] in delete_nodes:
-    #                     delete_connections.append(connection_idx)
-    # 
-    #             # -- delete the nodes in delete connections
-    #             for connection_idx in sorted(delete_connections, reverse=True):
-    #                 del (connections[connection_idx])
-    # 
-    #             # -- update node degree
-    #             node_degree = len(connections)
-    # 
-    #             if debug_print:
-    #                 print("Function: _make_pruned_graph :: Node: {} \t Connections: {}".format(nodeId, connections))
-    #                 print("Function: _make_pruned_graph :: Node: {} \t Degree: {}".format(nodeId, node_degree))
-    #                 print("==" * 30)
-    # 
-    #             if node_degree <= 1:
-    #                 delete_nodes.append(nodeId)
-    #                 current_delete_nodes.append(nodeId)
-    #                 n_deleted += 1
-    # 
-    #         # -- print the nodes to be deleted
-    #         if debug_print:
-    #             print("Function: _make_pruned_graph :: Nodes with degree 1: {}".format(current_delete_nodes))
-    #             print("Function: _make_pruned_graph :: Current Delete Nodes: {}".format(current_delete_nodes))
-    #             print("Function: _make_pruned_graph :: All Delete Nodes: {}".format(current_delete_nodes))
-    #             print("- " * 30)
-    #         # -- delete the nodes marked in current_delete_nodes
-    #         for nodeIdx in current_delete_nodes:
-    #             if nodeIdx in prunedGraph:
-    #                 del (prunedGraph[nodeIdx])
-    #             if debug_print:
-    #                 print("Function: _make_pruned_graph :: Delete Node : {}".format(nodeIdx))
-    #                 print("-" * 30)
-    # 
-    #         # -- print the remaining nodes
-    #         if debug_print:
-    #             print("Function: _make_pruned_graph :: Pruned Graph after one loop:")
-    #             print("Function: _make_pruned_graph :: Total pruned nodes: ", n_deleted)
-    #             print("Function: _make_pruned_graph :: Current Graph: ")
-    #             self._print_graph(prunedGraph, "Pruned")
-    #             print("-" * 100)
-    # 
-    #         # -- exit condition
-    #         if n_deleted == 0:
-    #             break
-    #     if debug_print:
-    #         print("Function: _make_pruned_graph :: Graph pruned")
-    #         for nodeIdx, connections in prunedGraph.items():
-    #             print("Vertex: ", nodeIdx, "Connections: ", connections)
-    # 
-    #     # -- return the pruned graph
-    #     return prunedGraph
 
     # --------------------------------------------------------------------------
     # Function: _deep_copy_graph

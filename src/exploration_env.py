@@ -134,6 +134,9 @@ class GraphExplorationEnvironment:
             print("EXPLORATION ENV: step :: Node selected to travel: ", goto_node)
             print("EXPLORATION ENV: step :: Current node", self.current_robot_position)
         cost = 0
+        
+        print("local states: ", self.local_states)
+        sys.exit(0)
 
         node_reached = None
         if self.current_robot_position == goto_node:

@@ -84,7 +84,12 @@ class GraphExplorationEnvironment:
         for node in local_states:
             local_state_dict[node[0]] = node[1]
         return local_state_dict
-            
+    
+    def get_exploration_graph(self):
+        # Create deep copy so that accidental changes do not affect the internal graph
+        ge = deepcopy(self.env.graph_explored)
+        return ge
+    
     
     def get_node_type(self, node_idx):
         return self.env.node_tags[node_idx]

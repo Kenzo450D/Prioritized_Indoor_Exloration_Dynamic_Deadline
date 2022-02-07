@@ -13,7 +13,7 @@ Data elements:
 ==============
 graph_explored:  <defaultdict> of the nodes explored. Each node has 
                  connectivity information along with it.
-seen_nodes: <list> list of seen nodes
+discovered_vertices: <list> list of discovered vertices
 explored_nodes: <list> list of nodes visited.
 
 Function:
@@ -42,7 +42,7 @@ get_remote_nodes
 get_all_nodes_with_path_cost
 ----------------------------
     get the nodes which are connected form the given node in the explored graph,
-    including all visited or seen nodes
+    including all visited or discovered vertices
 
 get_all_unvisited_nodes_with_path_cost
 --------------------------------------
@@ -111,7 +111,7 @@ class WeightedGraphEnv:
         # if visited add them to a list (del_idx)
         del_idx = []
         for local_nodes_idx, node in enumerate(local_nodes):
-            if node[0] in self.explored_nodes:
+            if node[0] in self.visited_vertices:
                 del_idx.append(local_nodes_idx)
         
         if debug_print:
@@ -128,7 +128,12 @@ class WeightedGraphEnv:
         return local_nodes
     
 
-    def get_remote_nodes(self, node, debug_print = False):
+    def get_discovered_nodes(self, node, debug_print = False):
+        """ Get all nodes 
+        """
+        pass
+
+    def get_remote_nodes(self, node, debug_print = True):
         """ Get remote nodes (not neighborhood nodes) for a given node.
         Input:
             node: A node in the graph environment
@@ -167,8 +172,9 @@ class WeightedGraphEnv:
         if debug_print:
             print ("ENV GRAPHS: Local Nodes: ", local_nodes)
             print ("ENV GRAPHS: Local Node Indices: ", local_node_indices)
-            print ("ENV GRAPHS: get_remote_nodes:: explored nodes: {}".format(self.explored_nodes))
+            print ("ENV GRAPHS: get_remote_nodes:: visited vertices: {}".format(self.visited_vertices))
             print ("\tLoop over the distance_all_nodes...")
+            input("Continue?")
         # END debug print
         
         # -- filter the nodes which are explored but not visited
@@ -178,7 +184,7 @@ class WeightedGraphEnv:
             if debug_print:
                 print ("\t\tNode: {}\tCost:{}".format(node, cost))
             # END debug_print
-            if node in self.explored_nodes:
+            if node in self.visited_vertices:
                 del_node.append(node)
             if node in local_node_indices:
                 del_node.append(node)
@@ -237,7 +243,7 @@ class WeightedGraphEnv:
         for node, cost in distance_all_nodes.items():
             if debug_print:
                 print ("\t\tNode: {}\tCost:{}".format(node, cost))
-            if node in self.explored_nodes:
+            if node in self.visited_vertices:
                 del_node.append(node)
         
         if debug_print:
@@ -266,11 +272,11 @@ class WeightedGraphEnv:
             distance_all_nodes: distance to all nodes
         """
         if debug_print:
-            print ("ENV GRAPHS:  GO LOCAL NODE: explored nodes before update: {}".format(self.explored_nodes))
+            print ("ENV GRAPHS:  GO LOCAL NODE: visited vertices before update: {}".format(self.visited_vertices))
             print ("ENV GRAPH: GO LOCAL NODE: update explored graph with node: {}".format(node_idx))
         self.update_graph_explored(node_idx)
         if debug_print:
-            print ("ENV GRAPHS:  GO LOCAL NODE: explored nodes before update: {}".format(self.explored_nodes))
+            print ("ENV GRAPHS:  GO LOCAL NODE: visited vertices before update: {}".format(self.visited_vertices))
             print ("ENV GRAPHS: GO LOCAL NODE: distance_all_nodes: {}".format(self.distance_all_nodes))
         # return the current node and the cost incurred to reach there
         return node_idx, self.distance_all_nodes[node_idx]
@@ -379,7 +385,7 @@ class WeightedGraphEnv:
         visited_nodes.append(from_node)
         if debug_print:
             print ("ENV_GRAPH: _get_cost_to_all_nodes_dijkstra:: Visited Nodes: ", visited_nodes)
-            print ("ENV_GRAPH: _get_cost_to_all_nodes_dijkstra:: Seen Nodes: ", self.seen_nodes)
+            print ("ENV_GRAPH: _get_cost_to_all_nodes_dijkstra:: Seen Nodes: ", self.discovered_vertices)
         nsteps = 0
         last_node = None
         cur_node = from_node
@@ -392,10 +398,10 @@ class WeightedGraphEnv:
                 print ("\tBack to start of loop...")
             # -- get the nodes nearby
             # if the node is discovered node, and not visited, do not give details of its connections
-            if cur_node not in self.explored_nodes:
+            if cur_node not in self.visited_vertices:
                 if debug_print:
-                    print ("\tNode: {} is not in explored nodes".format(cur_node))
-                    print ("\tExplored Nodes: {}".format(self.explored_nodes))
+                    print ("\tNode: {} is not in visited vertices".format(cur_node))
+                    print ("\tExplored Nodes: {}".format(self.visited_vertices))
                 nodes_nearby = []
             else:
                 nodes_nearby = self.graph_explored[cur_node]
@@ -491,17 +497,17 @@ class WeightedGraphEnv:
             if debug_print:
                 print ("Function: set_up_initial_robot_position :: Position Selected = {}".format(position))
         
-        # -- initialize explored nodes
-        self.explored_nodes = []
+        # -- initialize visited vertices
+        self.visited_vertices = []
         
-        # -- initialize seen nodes
-        self.seen_nodes = [position]
+        # -- initialize discovered vertices
+        self.discovered_vertices = [position]
         
-        # -- add node to explored graph (and update explored and seen nodes)
+        # -- add node to explored graph (and update explored and discovered vertices)
         self._add_node_graph_explored(position)
         
-        # -- return the explored graph_explored, explored_nodes, and seen nodes
-        return self.graph_explored, self.explored_nodes, self.seen_nodes
+        # -- return the explored graph_explored, explored_nodes, and discovered vertices
+        return self.graph_explored, self.visited_vertices, self.discovered_vertices
         
     def update_graph_explored(self, node):
         """ Updates the graph explored with the new vertex.
@@ -531,18 +537,18 @@ class WeightedGraphEnv:
         if debug_print:
             print ("ENV GRAPH: _add_node_graph_explored :: ", node)
             print ("\tself.graph_explored: {}".format(dict(self.graph_explored)))
-        if node in self.explored_nodes:
+        if node in self.visited_vertices:
             return
         else:
             self.graph_explored[node] = deepcopy(self.graph_gt[node])
         
-        # -- update the explored nodes
-        self.explored_nodes.append(node)
+        # -- update the visited vertices
+        self.visited_vertices.append(node)
         if debug_print:
             print ("add_node_graph_explored:: Graph_updated_see_graph_here:")
             print (dict(self.graph_explored))
         
-        # -- create the node from the seen nodes to the visited node
+        # -- create the node from the discovered vertices to the visited node
         if debug_print:
             print ("ENV GRAPH:: add nodes for the local nodes")
         for local_node_idx, local_node_cost in self.graph_explored[node]:
@@ -571,14 +577,14 @@ class WeightedGraphEnv:
                     print ("\t\tLocal Node : {} NOT found in graph_explored".format(local_node_idx))
                 self.graph_explored[local_node_idx] = [(node, local_node_cost)]
         
-        # -- update seen nodes
-        current_seen_nodes = self._get_neighboring_nodes(node)
+        # -- update discovered vertices
+        current_discovered_vertices = self._get_neighboring_nodes(node)
         
-        # -- update the seen nodes
-        self.seen_nodes.extend(self._get_neighboring_nodes(node))
+        # -- update the discovered vertices
+        self.discovered_vertices.extend(self._get_neighboring_nodes(node))
         
-        # -- make seen nodes unique
-        self.seen_nodes = list(set(self.seen_nodes))
+        # -- make discovered vertices unique
+        self.discovered_vertices = list(set(self.discovered_vertices))
         
         if debug_print:
             print ("add_node_graph_explored:: Graph_updated_see_graph_here:")
@@ -589,20 +595,20 @@ class WeightedGraphEnv:
     def _get_neighboring_nodes(self, node, debug_print = False):
         """ Get neighboring vertices for a given vertex.
         Input: node <int> (should be a key in the ground truth graph)
-        Output: seen_nodes <list<int>> vertices in thee graph
+        Output: discovered_vertices <list<int>> vertices in thee graph
         """
         # -- initialize nodes
         neighboring_nodes = deepcopy(self.graph_gt[node])
-        seen_nodes = []
+        discovered_vertices = []
         
         # -- debug print
         if debug_print:
             print ("Function: _get_neighboring_nodes :: Neighboring nodes in GT: {}".format(neighboring_nodes))
             
-        # -- fill up the seen nodes with the neighboring node indices
+        # -- fill up the discovered vertices with the neighboring node indices
         for node in neighboring_nodes:
-            seen_nodes.append(node[0])
-        return seen_nodes
+            discovered_vertices.append(node[0])
+        return discovered_vertices
         
     
     def _initialize_graph_explored(self):

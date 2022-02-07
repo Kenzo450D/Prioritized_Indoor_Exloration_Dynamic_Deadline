@@ -13,4 +13,7 @@ Files:
     2. How to get the
 5. Correct the priority values to reflect the changes make and make sure this works (Priority) DONE
 
+## Get adjacency list of explored graph
+
+
 ## Remove remote and local nodes

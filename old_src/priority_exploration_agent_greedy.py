@@ -50,25 +50,27 @@ class PriorityExplorationAgent:
         return explored_graph
     
     def explore(self):
-        observation = self.env.get_state()
+        observation = self.env.get_state_consolidated()
         self._print_observation_to_file(observation)
         self._print_observation_to_screen(observation)
+
         while True:
             # -- update visited nodes
             self.visited_nodes.append(observation[0])
             
             # -- add time limits to global list
-            self.all_time_limits.append(observation[3])
-            
+            self.all_time_limits.append(observation[2])
+
             # -- check for time remaining
-            time_remaining = observation[3]
-            if time_remaining is not None and time_remaining <= 0:
+            t_r = observation[2]
+            print ("t_r = ", t_r)
+            if t_r is not None and t_r <= 0:
                 break
-            
+
             # -- check if exploration is complete
-            if len(observation[1]) == 0 and len(observation[2]) == 0:
+            if len(observation[1]) == 0:
                 # we do not have places to move
-                print ("AGENT: Region explored completely as local and remote free indices are empty")
+                print("PEA: Region completely explored as discovered vertices are unavailable")
                 # -- if robot is not in starting node, go to starting node
                 if observation[0] == self.init_position:
                     break
@@ -77,11 +79,11 @@ class PriorityExplorationAgent:
                     observation = self.env.step(self.init_position)
             else:
                 # -- if time remaining is unknown
-                if time_remaining is None:
+                if t_r is None:
                     action = self._choose_greedy_action(observation)
                     action_cost = action[0]
                     action_node = action[1]
-                elif time_remaining <= 0:
+                elif t_r <= 0:
                     break
                 else:
                     # -- if time limit is known
@@ -94,10 +96,12 @@ class PriorityExplorationAgent:
             # -- save the results
             self._print_observation_to_file(observation)
             self._print_observation_to_screen(observation)
-        self._print_visited_nodes_to_file()
         
-            
-    
+        # -- output the list of visited vertices to file
+        self._print_visited_nodes_to_file()
+        return
+
+
     def _reset_output_file(self):
         sample = open(self.output_filename, 'w') 
         print ("Agent priority filename: {}".format(self.priority_filename), file=sample)
@@ -115,25 +119,16 @@ class PriorityExplorationAgent:
         """
         # -- decompose from observation
         cur_state = observation[0]
-        local_states = observation[1]
-        remote_states = observation[2]
+        discovered_states = observation[1]
         
         # -- initialize priority queue
         lowest_cost_action = []
-        
-        # -- check if in visited nodes
-        # check if this step is necessary
-        # print ("PEA:_choose_greedy_action: Local states before removal: ", local_states)
-        # self._remove_visited_vertices(local_states)
-        # print ("PEA:_choose_greedy_action: Local states after  removal: ", local_states)
-        # print ("PEA:_choose_greedy_action: Remote states before removal: ", remote_states)
-        # self._remove_visited_vertices(remote_states)
-        # print ("PEA:_choose_greedy_action: Remote states after  removal: ", remote_states)
-        # input("Continue?")
+
+        # -- print the discovered states
+        print ("Discovered states: ", discovered_states)
         
         # -- add local and remote vertices to priority queue
-        self._add_nodes_priority_queue_no_time_limit(local_states, lowest_cost_action)
-        self._add_nodes_priority_queue_no_time_limit(remote_states, lowest_cost_action)
+        self._add_nodes_priority_queue_no_time_limit(discovered_states, lowest_cost_action)
         
         if debug_print:
             print ("AGENT: priority queue by agent: ", lowest_cost_action)
@@ -148,10 +143,9 @@ class PriorityExplorationAgent:
         return (action[1], action[2])
 
     
-    def _choose_greedy_action_time(self, observation, debug_print = False):
+    def _choose_greedy_action_time(self, observation: list, debug_print: bool=False):
         cur_state = observation[0]
-        local_states = observation[1]
-        remote_states = observation[2]
+        discovered_states = observation[1]
         t_r = observation[3] # time remaining
         home_node = self.init_position
         
@@ -166,16 +160,6 @@ class PriorityExplorationAgent:
             print ("All Distances from home node: ")
             print (dist_to_home)
             print ("-"*80)
-        
-        # -- remove the visited vertices
-        # check if this step is necessary
-        # print ("PEA:_choose_greedy_action: Local states before removal: ", local_states)
-        # self._remove_visited_vertices(local_states)
-        # print ("PEA:_choose_greedy_action: Local states after  removal: ", local_states)
-        # print ("PEA:_choose_greedy_action: Remote states before removal: ", remote_states)
-        # self._remove_visited_vertices(remote_states)
-        # print ("PEA:_choose_greedy_action: Remote states after  removal: ", remote_states)
-        # input("Continue?")
 
         # -- initialize the priorityQueue
         lowest_cost_action_pqueue = []
@@ -194,8 +178,7 @@ class PriorityExplorationAgent:
             flag_return_possible = False
             # Return home is NOT POSSIBLE
             # -- get the vertex to visit without deadline
-            self._add_nodes_priority_queue_no_time_limit(local_states, lowest_cost_action_pqueue)
-            self._add_nodes_priority_queue_no_time_limit(remote_states, lowest_cost_action_pqueue)
+            self._add_nodes_priority_queue_no_time_limit(discovered_states, lowest_cost_action_pqueue)
             while True:
                 if len(lowest_cost_action_pqueue) > 0:
                     action = heapq.heappop(lowest_cost_action_pqueue)
@@ -207,8 +190,7 @@ class PriorityExplorationAgent:
         # Return to home IS POSSIBLE
         # -- add discovered vertices to priority queue
         # -- add local and remote vertices to priority queue
-        self._add_nodes_priority_queue_with_time_limit(local_states, dist_to_home, lowest_cost_action_pqueue, t_r)
-        self._add_nodes_priority_queue_with_time_limit(remote_states, dist_to_home, lowest_cost_action_pqueue, t_r)
+        self._add_nodes_priority_queue_with_time_limit(discovered_states, dist_to_home, lowest_cost_action_pqueue, t_r)
         
         if debug_print:
             print ("PEA: priority queue by agent: ", lowest_cost_action_pqueue)
@@ -307,21 +289,18 @@ class PriorityExplorationAgent:
     def _print_observation_to_screen(self, observation):
         print ("*="*40)
         print ("AGENT: Current State: ", observation[0])
-        print ("AGENT: Local States: ", observation[1])
-        print ("AGENT: remote states: ", observation[2])
+        print ("AGENT: Discovered States: ", observation[1])
         print ("AGENT: time remaining: ", observation[3])
-        print ("AGENT: cost total: ", observation[4])
+        print ("AGENT: cost total: ", observation[3])
         print ("*="*40)
     
     def _print_observation_to_file(self, observation):
         sample = open(self.output_filename, 'a') 
-        print ("AGENT: Current State: ", observation[0], file=sample)
-        print ("AGENT: Local States: ", len(observation[1]), file=sample)
+        print ("PEA: Current State: ", observation[0], file=sample)
+        print ("PEA: Discovered States: ", len(observation[1]), file=sample)
         print (self._dictionary_to_string(observation[1]), file=sample)
-        print ("AGENT: remote states: ", len(observation[2]), file=sample)
-        print (self._dictionary_to_string(observation[2]), file=sample)
-        print ("AGENT: time remaining: ", observation[3], file=sample)
-        print ("AGENT: cost total: ", observation[4], file=sample)
+        print ("AGENT: time remaining: ", observation[2], file=sample)
+        print ("AGENT: cost total: ", observation[3], file=sample)
         print ("-"*80, file=sample)
         sample.close()
     

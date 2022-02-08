@@ -129,11 +129,67 @@ class WeightedGraphEnv:
     
 
     def get_discovered_nodes(self, node, debug_print = False):
-        """ Get all nodes 
+        """ Get all nodes that have been discovered but not visited by the robot.
+        Input:
+            node: A node in the graph environment
+            debug_print: Prints on screen if True
+        Output:
+            distance_all_nodes: <dict int:int>
+            source_all_nodes: <dict int:int>
         """
-        pass
+        if node not in self.graph_gt:
+            print ("Function: get_local_nodes :: Error: Node {} not in graph".format(node))
+            raise ValueError
+        # -- get remote nodes from graph_gt
+        """
+        we would want to fetch the remote node which is closest available.
+        considering we now have a weighted graph instead of a unweighted graph, 
+        we would have now have to explore the completely explored graph for each
+        step.
+        """
+        distance_all_nodes, source_all_nodes = self._get_cost_to_all_nodes_dijkstra(node, debug_print)
+        self.distance_all_nodes = deepcopy(distance_all_nodes)
+        self.source_all_nodes = deepcopy(source_all_nodes)
+        
+        # BEGIN debug print
+        if debug_print:
+            print ("ENV GRAPHS: get_remote_nodes:: distance_all_nodes: {}".format(distance_all_nodes))
+            print ("ENV GRAPHS: get_remote_nodes:: source_all_nodes: {}".format(source_all_nodes))
+            print ("ENV GRAPHS: get_remote_nodes:: visited vertices: {}".format(self.visited_vertices))
+            print ("\tLoop over the distance_all_nodes...")
+            input("Continue?")
+        # END debug print
+        
+        # -- filter the nodes which are explored but not visited
+        del_node = []
+        for node, cost in distance_all_nodes.items():
+            if node in self.visited_vertices:
+                del_node.append(node)
+        
+        # BEGIN debug print
+        if debug_print:
+            print ("ENV GRAPHS: get_remote_nodes:: nodes to be deleted: {}".format(del_node))
+        # END debug print
+        
+        # -- get unique elements
+        """
+        as distance_all_nodes is dict, we can delete nodes without sorting 
+        indices in reverse order
+        """
+        del_node = list(set(del_node))
+        for node in del_node:
+            del(distance_all_nodes[node])
+            del(source_all_nodes[node])
+        
+        # BEGIN debug print
+        if debug_print:
+            print ("Function: get_remote_nodes :: Remaining nodes: \n\t", distance_all_nodes)
+            print ("Function: get_remote_nodes :: END")
+            print ("--"*50)
+        # END debug print
+        return distance_all_nodes, source_all_nodes
 
-    def get_remote_nodes(self, node, debug_print = True):
+    def get_remote_nodes(self, node, debug_print = False):
         """ Get remote nodes (not neighborhood nodes) for a given node.
         Input:
             node: A node in the graph environment

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from copy import deepcopy
-from priority_exploration_agent import PriorityExplorationAgent
+from priority_exploration_agent_greedy import PriorityExplorationAgent
 from get_files_for_environment_agent import get_env_params
 from get_files_for_environment_agent import get_agent_files
 

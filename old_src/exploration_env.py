@@ -60,9 +60,10 @@ class GraphExplorationEnvironment:
     def _set_up_clock(self):
         self.exploration_clock = ExplorationClock(self.tw, self.tb)
     
-    def get_state(self):
+
+    def get_state_consolidated(self):
         cur_pos = self.current_robot_position
-        
+
         # -- the current state is a combination of local states and remote nodes towards a direction
         local_states = self.env.get_local_unvisited_nodes_gt(cur_pos)
         print ("Local states: ", local_states)
@@ -70,14 +71,38 @@ class GraphExplorationEnvironment:
         print ("Local state dictionary: ", local_states)
         remote_states = self.env.get_remote_nodes(cur_pos)
         print ("Remote states: ", remote_states)
-        # sys.exit(0)
+        
+        # -- get all discovered states
+        discovered_states = self.env.get_discovered_nodes(cur_pos)
+        self.discovered_states, self.source_discovered_states = discovered_states
+        print ("Discovered states: ", discovered_states)
+        input("Continue?")
 
         # -- save to class variables
         self.local_states = local_states
         self.remote_states, self.source_remote_states = remote_states
         
         # -- return the state
-        return (cur_pos, local_states, self.remote_states, self.exploration_clock.get_time_limit(), self.cost_incurred)
+        return (cur_pos, self.discovered_states, self.exploration_clock.get_time_limit(), self.cost_incurred)
+        
+
+    # def get_state(self):
+    #     cur_pos = self.current_robot_position
+        
+    #     # -- the current state is a combination of local states and remote nodes towards a direction
+    #     local_states = self.env.get_local_unvisited_nodes_gt(cur_pos)
+    #     print ("Local states: ", local_states)
+    #     local_states = self._convert_local_states_list_to_dict(local_states)
+    #     print ("Local state dictionary: ", local_states)
+    #     remote_states = self.env.get_remote_nodes(cur_pos)
+    #     print ("Remote states: ", remote_states)
+        
+    #     # -- save to class variables
+    #     self.local_states = local_states
+    #     self.remote_states, self.source_remote_states = remote_states
+        
+    #     # -- return the state
+    #     return (cur_pos, local_states, self.remote_states, self.exploration_clock.get_time_limit(), self.cost_incurred)
     
     def _convert_local_states_list_to_dict(self, local_states):
         local_state_dict = {}
@@ -106,7 +131,7 @@ class GraphExplorationEnvironment:
             # -- robot is trying to reach the same robot
             print("EXPLORATION ENV: step :: Robot is trying to back to the same node ", goto_node)
             time_remaining = self.exploration_clock.update_time_limit()
-            return self.get_state()
+            return self.get_state_consolidated()
         elif goto_node in self.local_states.keys():
             # -- robot is trying to reach a local node
             print("EXPLORATION ENV: step :: Robot headed for local node")
@@ -148,7 +173,7 @@ class GraphExplorationEnvironment:
             time_remaining = self.exploration_clock.update_time_limit()
             cost = cost -1
         print ("EXPLORATION ENV: step:: Time Remaining = ", time_remaining)
-        return self.get_state()
+        return self.get_state_consolidated()
     
     def get_time_limit(self):
         return self.exploration_clock.get_time_limit()

@@ -17,3 +17,7 @@ Files:
 
 
 ## Remove remote and local nodes
+1. Removed the visited vertices check in PEA. Lines 172-178
+2. Created function `get_states_consolidated`.
+3. Created file priority_exploration_agent_greedy to use the `get_states_consolidated` instead of `get_states`
+4. Commented out `get_states` function as it was not being used.

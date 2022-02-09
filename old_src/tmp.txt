@@ -1,4 +1,0 @@
-Agent priority filename: ../resources/greedy_agent/vertex_priority_prioritized.txt
-Time: 2022-2-8:4:10:47
---------------------------------------------------------------------------------
-16 10 9 8 7 13 19 25 26 27 28 27 28 22 28 27 

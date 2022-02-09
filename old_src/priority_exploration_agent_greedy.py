@@ -43,7 +43,7 @@ class PriorityExplorationAgent:
         
         # -- set current state
         self.current_position = init_position
-        print ("AGENT: Initialized, current position: {}".format(self.current_position))
+        print ("PEA: Initialized, current position: {}".format(self.current_position))
     
     def get_explored_graph(self):
         explored_graph = deepcopy(self.env.env.graph_explored)
@@ -51,6 +51,10 @@ class PriorityExplorationAgent:
     
     def explore(self):
         observation = self.env.get_state_consolidated()
+        print ("PEA: EXPLORE:: Observation: ")
+        for o in observation:
+            print (o)
+        input ("PEA: EXPLORE:: Continue?")
         self._print_observation_to_file(observation)
         self._print_observation_to_screen(observation)
 
@@ -75,7 +79,7 @@ class PriorityExplorationAgent:
                 if observation[0] == self.init_position:
                     break
                 else:
-                    print("AGENT: Agent not in starting position, go back to starting position")
+                    print("PEA: Agent not in starting position, go back to starting position")
                     observation = self.env.step(self.init_position)
             else:
                 # -- if time remaining is unknown
@@ -111,7 +115,7 @@ class PriorityExplorationAgent:
         sample.close()
 
 
-    def _choose_greedy_action(self, observation, debug_print = False):
+    def _choose_greedy_action(self, observation, debug_print = True):
         """
         Step 1: Get current state, local and remote states available.
         Step 2: Remove local and remote states that are visited.
@@ -131,33 +135,36 @@ class PriorityExplorationAgent:
         self._add_nodes_priority_queue_no_time_limit(discovered_states, lowest_cost_action)
         
         if debug_print:
-            print ("AGENT: priority queue by agent: ", lowest_cost_action)
+            print ("PEA: priority queue by agent: ", lowest_cost_action)
         
         # -- fetch the cheapest action
         action = heapq.heappop(lowest_cost_action)
         action = (action[0], action[1], action[2].val)
         if debug_print:
-            print ("AGENT: Actions chosen by agent: ", action)
+            print ("PEA: Actions chosen by agent: ", action)
         
         # -- return the action
         return (action[1], action[2])
 
     
-    def _choose_greedy_action_time(self, observation: list, debug_print: bool=False):
+    def _choose_greedy_action_time(self, observation: list, debug_print: bool=True):
         cur_state = observation[0]
         discovered_states = observation[1]
-        t_r = observation[3] # time remaining
+        t_r = observation[2] # time remaining
+        print ("PEA: _choose_greedy_action_time: ", observation)
+        input("PEA: _choose_greedy_action_time: Continue?")
         home_node = self.init_position
         
         # -- get distance to home
         dist_to_home = self.env.get_all_distances_from_node(home_node, debug_print=False)
         
+        
         # -- flag return possible to True
         flag_return_possible = True
         
         if debug_print:
-            print ("ALICE: choose_greedy_action_time_limit:: Get distance from home node: {} to current node: {}".format(home_node, cur_state))
-            print ("All Distances from home node: ")
+            print ("PEA: _choose_greedy_action_time:: Get distance from home node: {} to current node: {}".format(home_node, cur_state))
+            print ("PEA: _choose_greedy_action_time:: All Distances from home node: ")
             print (dist_to_home)
             print ("-"*80)
 
@@ -168,13 +175,22 @@ class PriorityExplorationAgent:
         distance_current_home = dist_to_home[cur_state]
         action_home = (distance_current_home, home_node)
         action_stay = (0.0, cur_state)
+
+        print ("PEA: _choose_greedy_action_time:: distance from home: ", distance_current_home)
+        print ("PEA: _choose_greedy_action_time:: time remaining: ", t_r)
+        print ("PEA: _choose_greedy_action_time:: Action home: ", action_home)
+        print ("PEA: _choose_greedy_action_time:: Action stay: ", action_stay)
         
         # -- if time remaining is equals time remaining
         if distance_current_home == t_r:
+            print ("PEA: _choose_greedy_action_time:: distance current home = t_r")
             return action_home #TODO: Fix notation
         elif (distance_current_home + 1) == t_r:
+            print ("PEA: _choose_greedy_action_time:: distance current home +1 = t_r")
             return action_home  #TODO: Fix notation
         elif distance_current_home > t_r:
+            print ("PEA: _choose_greedy_action_time:: Return home is not possible")
+            print ("                                  exploring the rest of the environment")
             flag_return_possible = False
             # Return home is NOT POSSIBLE
             # -- get the vertex to visit without deadline
@@ -193,7 +209,7 @@ class PriorityExplorationAgent:
         self._add_nodes_priority_queue_with_time_limit(discovered_states, dist_to_home, lowest_cost_action_pqueue, t_r)
         
         if debug_print:
-            print ("PEA: priority queue by agent: ", lowest_cost_action_pqueue)
+            print ("PEA: _choose_greedy_action_time:: priority queue by agent: ", lowest_cost_action_pqueue)
         
         # if the length of the lowest_cost_action_pqueue is zero, then the robot 
         # did not find any possible vertices to visit
@@ -288,10 +304,10 @@ class PriorityExplorationAgent:
     
     def _print_observation_to_screen(self, observation):
         print ("*="*40)
-        print ("AGENT: Current State: ", observation[0])
-        print ("AGENT: Discovered States: ", observation[1])
-        print ("AGENT: time remaining: ", observation[3])
-        print ("AGENT: cost total: ", observation[3])
+        print ("PEA: Current State: ", observation[0])
+        print ("PEA: Discovered States: ", observation[1])
+        print ("PEA: time remaining: ", observation[2])
+        print ("PEA: cost total: ", observation[3])
         print ("*="*40)
     
     def _print_observation_to_file(self, observation):
@@ -299,8 +315,8 @@ class PriorityExplorationAgent:
         print ("PEA: Current State: ", observation[0], file=sample)
         print ("PEA: Discovered States: ", len(observation[1]), file=sample)
         print (self._dictionary_to_string(observation[1]), file=sample)
-        print ("AGENT: time remaining: ", observation[2], file=sample)
-        print ("AGENT: cost total: ", observation[3], file=sample)
+        print ("PEA: time remaining: ", observation[2], file=sample)
+        print ("PEA: cost total: ", observation[3], file=sample)
         print ("-"*80, file=sample)
         sample.close()
     

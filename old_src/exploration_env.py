@@ -66,17 +66,17 @@ class GraphExplorationEnvironment:
 
         # -- the current state is a combination of local states and remote nodes towards a direction
         local_states = self.env.get_local_unvisited_nodes_gt(cur_pos)
-        print ("Local states: ", local_states)
+        print ("EXPLORATION ENV: GET_STATE_CONSOLIDATED: Local states: ", local_states)
         local_states = self._convert_local_states_list_to_dict(local_states)
-        print ("Local state dictionary: ", local_states)
+        print ("EXPLORATION ENV: GET_STATE_CONSOLIDATED: Local state dictionary: ", local_states)
         remote_states = self.env.get_remote_nodes(cur_pos)
-        print ("Remote states: ", remote_states)
+        print ("EXPLORATION ENV: GET_STATE_CONSOLIDATED: Remote states: ", remote_states)
         
         # -- get all discovered states
         discovered_states = self.env.get_discovered_nodes(cur_pos)
         self.discovered_states, self.source_discovered_states = discovered_states
-        print ("Discovered states: ", discovered_states)
-        input("Continue?")
+        print ("EXPLORATION ENV: GET_STATE_CONSOLIDATED: Discovered states: ", discovered_states)
+        # input("Continue?")
 
         # -- save to class variables
         self.local_states = local_states

@@ -89,7 +89,7 @@ class WeightedGraphEnv:
             raise ValueError
         # -- get local nodes from graph_gt
         local_nodes = deepcopy(self.graph_gt[node])
-        print ("Local Nodes: ", local_nodes)
+        print ("ENV_GRAPHS: GET_LOCAL_NODES: Local Nodes: ", local_nodes)
         return local_nodes
     
 
@@ -157,7 +157,7 @@ class WeightedGraphEnv:
             print ("ENV GRAPHS: get_remote_nodes:: source_all_nodes: {}".format(source_all_nodes))
             print ("ENV GRAPHS: get_remote_nodes:: visited vertices: {}".format(self.visited_vertices))
             print ("\tLoop over the distance_all_nodes...")
-            input("Continue?")
+            # input("Continue?")
         # END debug print
         
         # -- filter the nodes which are explored but not visited
@@ -230,7 +230,7 @@ class WeightedGraphEnv:
             print ("ENV GRAPHS: Local Node Indices: ", local_node_indices)
             print ("ENV GRAPHS: get_remote_nodes:: visited vertices: {}".format(self.visited_vertices))
             print ("\tLoop over the distance_all_nodes...")
-            input("Continue?")
+            # input("Continue?")
         # END debug print
         
         # -- filter the nodes which are explored but not visited
@@ -270,7 +270,7 @@ class WeightedGraphEnv:
         return distance_all_nodes, source_all_nodes
     
 
-    def get_all_nodes_with_path_cost(self, node, debug_print = True):
+    def get_all_nodes_with_path_cost(self, node, debug_print = False):
         """ Get all nodes in the explored graph with the path cost from input node
         Output:
             distance_all_nodes: 
@@ -338,7 +338,7 @@ class WeightedGraphEnv:
         return node_idx, self.distance_all_nodes[node_idx]
     
 
-    def go_remote_node(self, current_node, node_idx, step_flag=True, debug_print=True):
+    def go_remote_node(self, current_node, node_idx, step_flag=True, debug_print=False):
         """ Update the explored graph when the robot visits a remote node.
         ------------------------------------------------------------------------
         Input:

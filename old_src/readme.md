@@ -1,23 +1,40 @@
-Files:
-1. exploration_env.py
-2. env_graphs.py
-3. env_clock.py
-4. priority_exploration_agent.py
+# Guide
 
-# TODO
-1. Remove remote and local notes and just keep one. At least for the interface that is available to others. 
-2. What's the best way to consider the remote nodes from Up top? Write wrapper codes till basic ones are changed (2 hours)
-3. Make a function in exploration_env to create a adjacency matrix for the explored graph. 
-4. Write down clear documentation for:
-    1. How do get the adjacency list as a dictionary for the explored graph?
-    2. How to get the
-5. Correct the priority values to reflect the changes make and make sure this works (Priority) DONE
+## Example
 
-## Get adjacency list of explored graph
+execute `python3 priority_greedy_single-corridor_single-corridor.py`
+
+## Parameters
+
+#### Environment names
+1. straight_corridor
+2. looped_corridor
+3. branched_corridor
+
+#### Greedy algorithm options
+1. `Priority_Greedy`
+2. `Cost_Greedy`
 
 
-## Remove remote and local nodes
-1. Removed the visited vertices check in PEA. Lines 172-178
-2. Created function `get_states_consolidated`.
-3. Created file priority_exploration_agent_greedy to use the `get_states_consolidated` instead of `get_states`
-4. Commented out `get_states` function as it was not being used.
+## Executing exploration in an environment
+
+1. Set up the environment.
+2. Set up the exploration algorithm (named as `agent` in the example code)
+3. Set up time:
+    1. `t_a` refers to the time when the deadline is not available.
+    2. `t_r0` refers to the deadline.
+4. Set up the exploration agent by using an instance of the class `PriorityExplorationAgent`. 
+5. Run the `explore()` function to explore the environment.
+
+## Files in the code
+
+1. `exploration_env.py` - Handles the exploration graph and time remaining and converts it to formats that can be used by the exploration algorithm. 
+2. `env_graphs.py` - Handles the exploration graph and has functions to update it from the ground truth graph.
+3. `env_clock.py` - Handles exploration time. Returns time when queried. Can update time remaining.
+4. `priority_exploration_agent_greedy.py` - Is the priority exploration algorithm. Uses `node_tags` to identify importance of vertices.
+    1. Has two functions to create greedy actions: `_choose_greedy_action` and `_choose_greedy_action_time`.
+    2. Function `_choose_greedy_action` - choose a greedy action when deadline is not available.
+    3. Function `_choose_greedy_action_time` - choose a greedy action when deadline is imposed.
+5.  `int_wrapper.py` - Wraps integer node indexes to a wrapper class so that node indices are not compared against one another.
+6.  `get_files_for_environment_agent.py` - Get input files for environment and exploration agent. 
+7.  `priority_greedy_single-corridor_single-corridor.py` - Example code to run for a single environment.

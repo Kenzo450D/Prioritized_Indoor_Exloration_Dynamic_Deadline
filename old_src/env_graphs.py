@@ -294,7 +294,7 @@ class WeightedGraphEnv:
             print ("ENV GRAPHS: get_all_unvisited_nodes_with_path_code:: Start.")
         distance_all_nodes, source_all_nodes = self._get_cost_to_all_nodes_dijkstra(node, debug_print)
         
-        # -- filter the nodes which are seen but not visited
+        # -- filter the nodes which are visited
         del_node = []
         for node, cost in distance_all_nodes.items():
             if debug_print:

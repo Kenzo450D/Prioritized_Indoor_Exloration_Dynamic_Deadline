@@ -45,16 +45,9 @@ class PriorityExplorationAgent:
         self.current_position = init_position
         print ("PEA: Initialized, current position: {}".format(self.current_position))
     
-    def get_explored_graph(self):
-        explored_graph = deepcopy(self.env.env.graph_explored)
-        return explored_graph
-    
+  
     def explore(self):
         observation = self.env.get_state_consolidated()
-        print ("PEA: EXPLORE:: Observation: ")
-        for o in observation:
-            print (o)
-        input ("PEA: EXPLORE:: Continue?")
         self._print_observation_to_file(observation)
         self._print_observation_to_screen(observation)
 
@@ -67,7 +60,6 @@ class PriorityExplorationAgent:
 
             # -- check for time remaining
             t_r = observation[2]
-            print ("t_r = ", t_r)
             if t_r is not None and t_r <= 0:
                 break
 
@@ -115,7 +107,7 @@ class PriorityExplorationAgent:
         sample.close()
 
 
-    def _choose_greedy_action(self, observation, debug_print = True):
+    def _choose_greedy_action(self, observation:list, debug_print:bool = False):
         """
         Step 1: Get current state, local and remote states available.
         Step 2: Remove local and remote states that are visited.
@@ -147,12 +139,10 @@ class PriorityExplorationAgent:
         return (action[1], action[2])
 
     
-    def _choose_greedy_action_time(self, observation: list, debug_print: bool=True):
+    def _choose_greedy_action_time(self, observation: list, debug_print: bool=False):
         cur_state = observation[0]
         discovered_states = observation[1]
         t_r = observation[2] # time remaining
-        print ("PEA: _choose_greedy_action_time: ", observation)
-        input("PEA: _choose_greedy_action_time: Continue?")
         home_node = self.init_position
         
         # -- get distance to home
@@ -176,19 +166,19 @@ class PriorityExplorationAgent:
         action_home = (distance_current_home, home_node)
         action_stay = (0.0, cur_state)
 
-        print ("PEA: _choose_greedy_action_time:: distance from home: ", distance_current_home)
-        print ("PEA: _choose_greedy_action_time:: time remaining: ", t_r)
-        print ("PEA: _choose_greedy_action_time:: Action home: ", action_home)
-        print ("PEA: _choose_greedy_action_time:: Action stay: ", action_stay)
+        if debug_print:
+            print ("PEA: _choose_greedy_action_time:: distance from home: ", distance_current_home)
+            print ("PEA: _choose_greedy_action_time:: time remaining: ", t_r)
+            print ("PEA: _choose_greedy_action_time:: Action home: ", action_home)
+            print ("PEA: _choose_greedy_action_time:: Action stay: ", action_stay)
         
-        # -- if time remaining is equals time remaining
-        if distance_current_home == t_r:
+        if distance_current_home == t_r: # if cost to home is equals time remaining
             print ("PEA: _choose_greedy_action_time:: distance current home = t_r")
-            return action_home #TODO: Fix notation
-        elif (distance_current_home + 1) == t_r:
+            return action_home
+        elif (distance_current_home + 1) == t_r: # if cost to home is equals time remaining
             print ("PEA: _choose_greedy_action_time:: distance current home +1 = t_r")
-            return action_home  #TODO: Fix notation
-        elif distance_current_home > t_r:
+            return action_home
+        elif distance_current_home > t_r: # if cost to home is greater than time remaining
             print ("PEA: _choose_greedy_action_time:: Return home is not possible")
             print ("                                  exploring the rest of the environment")
             flag_return_possible = False
@@ -202,25 +192,24 @@ class PriorityExplorationAgent:
                         return (action[1], action[2].val)
                 else: # robot stays in position
                     return action_stay 
-
-        # Return to home IS POSSIBLE
-        # -- add discovered vertices to priority queue
-        # -- add local and remote vertices to priority queue
-        self._add_nodes_priority_queue_with_time_limit(discovered_states, dist_to_home, lowest_cost_action_pqueue, t_r)
-        
-        if debug_print:
-            print ("PEA: _choose_greedy_action_time:: priority queue by agent: ", lowest_cost_action_pqueue)
-        
-        # if the length of the lowest_cost_action_pqueue is zero, then the robot 
-        # did not find any possible vertices to visit
-        if len(lowest_cost_action_pqueue) == 0:
-            # -- return is not possible to home
-            if flag_return_possible == True:
-                return action_home
-        
-        # -- fetch the cheapest action
-        action = heapq.heappop(lowest_cost_action_pqueue)
-        action = (action[0], action[1], action[2], action[3].val) # remove the wrapper
+        else: # cost to home is less than time remaining
+            # Return to home IS POSSIBLE
+            # -- add discovered vertices to priority queue
+            self._add_nodes_priority_queue_with_time_limit(discovered_states, dist_to_home, lowest_cost_action_pqueue, t_r)
+            
+            if debug_print:
+                print ("PEA: _choose_greedy_action_time:: priority queue by agent: ", lowest_cost_action_pqueue)
+            
+            # if the length of the lowest_cost_action_pqueue is zero, then the robot 
+            # did not find any possible vertices to visit
+            if len(lowest_cost_action_pqueue) == 0:
+                # -- return is not possible to home
+                if flag_return_possible == True:
+                    return action_home
+            
+            # -- fetch the cheapest action
+            action = heapq.heappop(lowest_cost_action_pqueue)
+            action = (action[0], action[1], action[2], action[3].val) # remove the wrapper
 
         # -- if action is generated to stay in place to or to go back home
         if len(action) == 2:

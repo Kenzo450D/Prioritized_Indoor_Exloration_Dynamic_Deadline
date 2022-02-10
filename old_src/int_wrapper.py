@@ -1,10 +1,19 @@
+from random import randint
+
 """
 wrapper class made so that node indices are not compared against one another
 every comparison of less than, greather than, less than equal to, or greather
 than equal to, return a random integer between 1 and 0. 
 """
 
-from random import randint
+"""
+The wrapper uses a random number from package random.
+https://docs.python.org/3/library/random.html
+
+Notes:
+1.  if you have to fix on a seed. Define it in the __init__ function.
+"""
+
 class Wrapper:
   def __init__(self, val):
     self.val = val

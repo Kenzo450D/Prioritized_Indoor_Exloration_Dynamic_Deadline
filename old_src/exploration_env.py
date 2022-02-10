@@ -179,7 +179,7 @@ class GraphExplorationEnvironment:
         return self.exploration_clock.get_time_limit()
     
     def get_distance_to_node(self, nodeIdx):
-        return deepcopy(env.distance_all_nodes[nodeIdx])
+        return deepcopy(self.env.distance_all_nodes[nodeIdx])
     
     def get_all_distances_from_home(self, debug_print = True):
         node = self.initial_robot_position

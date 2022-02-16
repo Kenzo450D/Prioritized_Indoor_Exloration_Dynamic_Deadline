@@ -6,14 +6,14 @@ from get_files_for_environment_agent import get_env_params
 from get_files_for_environment_agent import get_agent_files
 
 # -- set up parameters
-environment_name = 'looped_corridor'
+environment_name = 'straight_corridor'
 agent_name = 'Priority_Greedy'
 env_params = get_env_params(environment_name)
 agent_priority_filename = get_agent_files(agent_name)
 
 
 t_a = 20
-t_r0 = 10
+t_r0 = 30
 outfile = 'tmp.txt'
 
 

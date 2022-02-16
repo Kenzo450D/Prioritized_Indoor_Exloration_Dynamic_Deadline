@@ -2,7 +2,7 @@
 
 ## Example
 
-execute `python3 priority_greedy_single-corridor_single-corridor.py`
+execute `python3 priority_greedy_single-corridor.py`
 
 ## Parameters
 
@@ -37,4 +37,4 @@ execute `python3 priority_greedy_single-corridor_single-corridor.py`
     3. Function `_choose_greedy_action_time` - choose a greedy action when deadline is imposed.
 5.  `int_wrapper.py` - Wraps integer node indexes to a wrapper class so that node indices are not compared against one another.
 6.  `get_files_for_environment_agent.py` - Get input files for environment and exploration agent. 
-7.  `priority_greedy_single-corridor_single-corridor.py` - Example code to run for a single environment.
+7.  `priority_greedy_straight-corridor.py` - Example code to run for a single environment.

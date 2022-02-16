@@ -9,9 +9,7 @@ from int_wrapper import Wrapper
 from copy import deepcopy
 
 class PriorityExplorationAgent:
-    def __init__(self, time_before_whistle, time_after_whistle, priority_filename, edges_filename, vertextag_filename, init_position, output_filename):
-        self.time_before_whistle = time_before_whistle
-        self.time_after_whistle = time_after_whistle
+    def __init__(self, t_a, t_r0, priority_filename, edges_filename, vertextag_filename, init_position, output_filename):
         self.priority_filename = priority_filename
         self.edges_filename = edges_filename
         self.vertextag_filename = vertextag_filename
@@ -28,8 +26,8 @@ class PriorityExplorationAgent:
         self.env = GraphExplorationEnvironment(edges_filename, 
                                                vertextag_filename, 
                                                priority_filename,
-                                               time_before_whistle,
-                                               time_after_whistle,
+                                               t_a,
+                                               t_r0,
                                                init_position)
         
         # -- initialize visited nodes
@@ -140,6 +138,8 @@ class PriorityExplorationAgent:
 
     
     def _choose_greedy_action_time(self, observation: list, debug_print: bool=False):
+        """ Chooses a greedy action from discovered states available with a deadline
+        """
         cur_state = observation[0]
         discovered_states = observation[1]
         t_r = observation[2] # time remaining
@@ -217,7 +217,8 @@ class PriorityExplorationAgent:
         # -- if action is generated to go to any other node
         else:
             print ("PEA: choose_greedy_action_time_limit::  Action selected: {}".format(action))
-            print ("PEA: choose_greedy_action_time_limit::  return: ({},{})".format(action[2], action[3]))
+            print ("PEA: choose_greedy_action_time_limit::  Cost: {}".format(action[1]))
+            print ("PEA: choose_greedy_action_time_limit::  return: ({},{})".format(action[1], action[3]))
             return (action[1], action[3])
 
 
@@ -256,11 +257,16 @@ class PriorityExplorationAgent:
     
     def _add_nodes_priority_queue_with_time_limit(self, states, dist_to_home, priority_queue, t_r):
         """ Creates a priority queue with vertices (when deadline is available)
-        Makes a heap queue based on 3 priority values:
-        Priority 1. priority of vertex
+        Makes a min heap (to create a priority queue) based on 3 priority values: 
+        (The 4th priority value is included to keep a track of the node_idx. However, a wrapper class
+        is used so that the comparison against node indices are considered as random True/False. This
+        eliminates priority due to insertion order or node index.)
+        Heapq: https://docs.python.org/3/library/heapq.html
+        FUTURE TODO: If using Python 3.7, upgrade wrapper class to dataclass
+        Priority 1. priority of vertex (highest priority)
         Priority 2. node cost (current -> target)
-        Priority 3. cost to return back home
-        Priority 4. Wrapped vertex_idx (so that node_id comparisons are not made)
+        Priority 3. cost to return back home (target->home)
+        Priority 4. Wrapped vertex_idx to avoid comparisons in (so that vertex_idx comparisons are not made)
 
         Arguments:
             states: <dict> (key: vertex_idx(int), val: cost to state from current vertex)
@@ -322,18 +328,3 @@ class PriorityExplorationAgent:
             print (node, end=' ', file=sample)
         print ("",file=sample)
         sample.close()
-        
-if __name__=='__main__':
-    t_bw = 15
-    t_aw = 10
-    outfile = 'alice-corridor-room-run.txt'
-    priority = 'vertex_priority_alice.txt'
-    edges_fn = 'edges_weighted.txt'
-    vtag_fn = 'vertex_tag.txt'
-    init_pos = 26
-    # time_before_whistle, time_after_whistle, priority_filename, edges_filename, vertextag_filename, init_position, output_filename):
-    # t_bw                 t_aw                
-    pe_agent = PriorityExplorationAgent(t_bw, t_aw, priority, edges_fn, vtag_fn, init_pos, outfile)
-    pe_agent.explore()
-    print ("Visited Nodes: ", pe_agent.visited_nodes)
-    

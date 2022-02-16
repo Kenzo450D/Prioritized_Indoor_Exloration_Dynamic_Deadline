@@ -12,10 +12,10 @@ def get_env_params(env_name):
 
     # -- get vertex_map_filename
     if env_name == 'straight_corridor' or env_name == 'sc':
-        vertex_map_filename = '../resources/environments/single_corridor/sc-env_mapping.txt'
-        edges_filename = '../resources/environments/single_corridor/sc-weighted-edges.txt'
-        vtag_filename = '../resources/environments/single_corridor/sc_vertex_tags.txt'
-        bg_img_filename = '../resources/environments/single_corridor/rooms.png'
+        vertex_map_filename = '../resources/environments/straight_corridor/sc-env_mapping.txt'
+        edges_filename = '../resources/environments/straight_corridor/sc-weighted-edges.txt'
+        vtag_filename = '../resources/environments/straight_corridor/sc_vertex_tags.txt'
+        bg_img_filename = '../resources/environments/straight_corridor/rooms.png'
         init_pose = 16
 
     elif env_name == 'looped_corridor' or env_name == 'circular_corridor' or env_name == 'cc':

@@ -1,9 +1,9 @@
 from random import randint
 
 """
-wrapper class made so that node indices are not compared against one another
-every comparison of less than, greather than, less than equal to, or greather
-than equal to, return a random integer between 1 and 0. 
+wrapper class made so that node indices are not compared against one another.
+Every comparison of less than, greather than, less than equal to, or greather
+than equal to, returns either 1 or 0 randomly. 
 """
 
 """

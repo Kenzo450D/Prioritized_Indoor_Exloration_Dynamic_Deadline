@@ -5,49 +5,16 @@ import numpy
 from copy import deepcopy
 import sys
 import numpy as np
-
+import random
 
 
 """
 Data elements:
 ==============
-graph_explored:  <defaultdict> of the nodes explored. Each node has 
+graph_explored:  <dict> of the nodes explored. Each node has 
                  connectivity information along with it.
 discovered_vertices: <list> list of discovered vertices
 explored_nodes: <list> list of nodes visited.
-
-Function:
-=========
-set_up_initial_robot_position
------------------------------
-
-
-
-get_local_nodes_gt 
-------------------
-    get the local nodes which can be viewed from a particular node
-    also comes with path cost
-    list of tuple (node_id, node_cost)
-    
-get_local_unvisited_nodes_gt
-----------------------------
-    get the local nodes which can be viewed and is unvisited from a particular node
-    list of tuple (node_id, node_cost)
-
-get_remote_nodes
-----------------
-    get the nodes which are remote from the given node in the explored graph,
-    and which are not in local nodes and which are not visited/explored
-
-get_all_nodes_with_path_cost
-----------------------------
-    get the nodes which are connected form the given node in the explored graph,
-    including all visited or discovered vertices
-
-get_all_unvisited_nodes_with_path_cost
---------------------------------------
-    get the nodes which are connected from the given node in the explored graph,
-    including local nodes and excluding visited nodes.
 """
 class WeightedGraphEnv:
     """
@@ -74,59 +41,6 @@ class WeightedGraphEnv:
         # -- return
         return
 
-
-    def _get_local_nodes_gt(self, node):
-        """ Returns neighboring vertices of a vertex from the ground truth graph
-        ------------------------------------------------------------------------
-        Input:
-        node: A node of the graph environment
-        ------------------------------------------------------------------------
-        Return:
-        a list of local nodes
-        """
-        if node not in self.graph_gt:
-            print ("Function: get_local_nodes :: Error: Node <{}> not in graph".format(node))
-            raise ValueError
-        # -- get local nodes from graph_gt
-        local_nodes = deepcopy(self.graph_gt[node])
-        print ("ENV_GRAPHS: GET_LOCAL_NODES: Local Nodes: ", local_nodes)
-        return local_nodes
-    
-
-    def get_local_unvisited_nodes_gt(self, node, debug_print = False):
-        """ Returns a set of unvisited nodes from the local neighborhood
-        ------------------------------------------------------------------------
-        Input:
-        node: A node of the graph environment
-        debug_print: Prints on screen if true
-        ------------------------------------------------------------------------
-        Returns a list of local unvisited nodes
-        ------------------------------------------------------------------------
-        TODO: What do you mean by unvisited? 
-        """
-        # -- get all the neighboring vertices
-        local_nodes = self._get_local_nodes_gt(node)
-        
-        # -- check the vertices that have been visited
-        # if visited add them to a list (del_idx)
-        del_idx = []
-        for local_nodes_idx, node in enumerate(local_nodes):
-            if node[0] in self.visited_vertices:
-                del_idx.append(local_nodes_idx)
-        
-        if debug_print:
-            print ("ENV GRAPH: Function: get_local_unvisited_nodes_gt :: local_nodes: {}".format(local_nodes))
-            print ("ENV GRAPH: Function: get_local_unvisited_nodes_gt :: del_idx: {}".format(del_idx))
-        
-        # -- remove all the vertices in del_idx from the local_nodes
-        for idx in sorted(del_idx, reverse=True):
-            del(local_nodes[idx])
-        
-        # print the unvisited local nodes
-        if debug_print:
-            print ("ENV_GRAPH: GET_LOCAL_UNVISITED_NODES :: Unvisited Local Nodes ::: {}".format(local_nodes))
-        return local_nodes
-    
 
     def get_discovered_nodes(self, node, debug_print = False):
         """ Get all nodes that have been discovered but not visited by the robot.
@@ -189,86 +103,6 @@ class WeightedGraphEnv:
         # END debug print
         return distance_all_nodes, source_all_nodes
 
-    def get_remote_nodes(self, node, debug_print = False):
-        """ Get remote nodes (not neighborhood nodes) for a given node.
-        Input:
-            node: A node in the graph environment
-            debug_print: Prints on screen if True
-        Output:
-            distance_all_nodes: 
-            source_all_nodes: 
-        """
-        if node not in self.graph_gt:
-            print ("Function: get_local_nodes :: Error: Node {} not in graph".format(node))
-            raise ValueError
-        # -- get remote nodes from graph_gt
-        """
-        we would want to fetch the remote node which is closest available.
-        considering we now have a weighted graph instead of a unweighted graph, 
-        we would have now have to explore the completely explored graph for each
-        step.
-        """
-        distance_all_nodes, source_all_nodes = self._get_cost_to_all_nodes_dijkstra(node, debug_print)
-        self.distance_all_nodes = deepcopy(distance_all_nodes)
-        self.source_all_nodes = deepcopy(source_all_nodes)
-        
-        # BEGIN debug print
-        if debug_print:
-            print ("ENV GRAPHS: get_remote_nodes:: distance_all_nodes: {}".format(distance_all_nodes))
-            print ("ENV GRAPHS: get_remote_nodes:: source_all_nodes: {}".format(source_all_nodes))
-        # END debug print
-        
-        # -- filter the nodes which are local
-        local_nodes = deepcopy(self.graph_gt[node])
-        local_node_indices = []
-        for node in local_nodes:
-            local_node_indices.append(node[0])
-        
-        # BEGIN debug print
-        if debug_print:
-            print ("ENV GRAPHS: Local Nodes: ", local_nodes)
-            print ("ENV GRAPHS: Local Node Indices: ", local_node_indices)
-            print ("ENV GRAPHS: get_remote_nodes:: visited vertices: {}".format(self.visited_vertices))
-            print ("\tLoop over the distance_all_nodes...")
-            # input("Continue?")
-        # END debug print
-        
-        # -- filter the nodes which are explored but not visited
-        del_node = []
-        for node, cost in distance_all_nodes.items():
-            # BEGIN debug_print
-            if debug_print:
-                print ("\t\tNode: {}\tCost:{}".format(node, cost))
-            # END debug_print
-            if node in self.visited_vertices:
-                del_node.append(node)
-            if node in local_node_indices:
-                del_node.append(node)
-        
-        # BEGIN debug print
-        if debug_print:
-            print ("ENV GRAPHS: get_remote_nodes:: nodes to be deleted: {}".format(del_node))
-        # END debug print
-        
-        # -- get unique elements
-        """
-        as distance_all_nodes is dict, we can delete nodes without sorting 
-        indices in reverse order
-        """
-        del_node = list(set(del_node))
-        for node in del_node:
-            del(distance_all_nodes[node])
-            del(source_all_nodes[node])
-        
-        # BEGIN debug print
-        if debug_print:
-            print ("Function: get_remote_nodes :: Remaining node: \n\t", distance_all_nodes)
-            print ("Function: get_remote_nodes :: Saved remote nodes: \n\t", self.distance_all_nodes)
-            print ("Function: get_remote_nodes :: END")
-            print ("--"*50)
-        # END debug print
-        return distance_all_nodes, source_all_nodes
-    
 
     def get_all_nodes_with_path_cost(self, node, debug_print = False):
         """ Get all nodes in the explored graph with the path cost from input node
@@ -282,7 +116,7 @@ class WeightedGraphEnv:
         return distance_all_nodes, source_all_nodes
     
     
-    def get_all_unvisited_nodes_with_path_cost(self, node, debug_print = True):
+    def get_only_discovered_nodes_with_path_cost(self, node, debug_print = True):
         """ Get unvisited nodes path cost from input node.
         Input:
             node: <int> node_id of a node in the explored graph
@@ -291,7 +125,7 @@ class WeightedGraphEnv:
 
         """
         if debug_print:
-            print ("ENV GRAPHS: get_all_unvisited_nodes_with_path_code:: Start.")
+            print ("ENV GRAPHS: get_only_discovered_nodes_with_path_cost:: Start.")
         distance_all_nodes, source_all_nodes = self._get_cost_to_all_nodes_dijkstra(node, debug_print)
         
         # -- filter the nodes which are visited
@@ -303,7 +137,7 @@ class WeightedGraphEnv:
                 del_node.append(node)
         
         if debug_print:
-            print ("ENV GRAPHS: get_all_unvisited_nodes_with_path_cost:: nodes to be deleted: {}".format(del_node))
+            print ("ENV GRAPHS: get_only_discovered_nodes_with_path_cost:: nodes to be deleted: {}".format(del_node))
         
         # -- get unique elements by converting list to set and back to list
         del_node = list(set(del_node))
@@ -314,18 +148,18 @@ class WeightedGraphEnv:
             del(source_all_nodes[node])
         
         return distance_all_nodes, source_all_nodes
-    
-    def go_local_node(self, node_idx, debug_print = True):
+
+
+    def go_local_node(self, node_idx: int, debug_print: bool = True):
         """ Update the graph explored if a local node is visited
-        TODO: merge this with go_remote_node
         -----------------------------------------------------------------------
         Input:
             node_idx: <int> node_idx of the new visited node
             debug_print: <bool> if True, display the debugging print statements
         -----------------------------------------------------------------------
         Output:
-            node_idx: the same node idx that was input TODO: Why?
-            distance_all_nodes: distance to all nodes
+            node_idx: the current position of robot after travel
+            cost: path cost due to travel
         """
         if debug_print:
             print ("ENV GRAPHS:  GO LOCAL NODE: visited vertices before update: {}".format(self.visited_vertices))
@@ -335,10 +169,11 @@ class WeightedGraphEnv:
             print ("ENV GRAPHS:  GO LOCAL NODE: visited vertices before update: {}".format(self.visited_vertices))
             print ("ENV GRAPHS: GO LOCAL NODE: distance_all_nodes: {}".format(self.distance_all_nodes))
         # return the current node and the cost incurred to reach there
-        return node_idx, self.distance_all_nodes[node_idx]
+        cost = self.distance_all_nodes[node_idx]
+        return node_idx, cost
     
 
-    def go_remote_node(self, current_node, node_idx, step_flag=True, debug_print=False):
+    def go_remote_node(self, current_node: int, node_idx: int, step_flag: bool=False, debug_print: bool=False):
         """ Update the explored graph when the robot visits a remote node.
         ------------------------------------------------------------------------
         Input:
@@ -350,8 +185,8 @@ class WeightedGraphEnv:
             debug_print: <bool> to print the debug statements
         ------------------------------------------------------------------------
         Output:
-            node_idx: the same node_idx as input
-            distance_all_nodes: dijkstra's algorithm distance to all nodes.
+            node_idx: the current position of robot after travel
+            cost: path cost due to travel
         ------------------------------------------------------------------------
         Description:
 
@@ -397,10 +232,13 @@ class WeightedGraphEnv:
                 
         else:
             self._go_remote_node_directly(node_idx)
-            return node_idx, self.distance_all_nodes[node_idx]
+            cost = self.distance_all_nodes[node_idx]
+            return node_idx, cost
         
     
     def _go_remote_node_directly(self, node_idx):
+        """ Update the explored graph with node_idx.
+        """
         self.update_graph_explored(node_idx)
         return
         
@@ -414,15 +252,8 @@ class WeightedGraphEnv:
                    are calculated
         debug_print: print the nodes to debug
         ------------------------------------------------------------------------
-        Step 1: 
-            Initialize two default dictionaries. Minimum Distance and Source.
-            min_distances_to_v: stores the current minimum distance from the 
-                                source vertex to any vertex in the graph
-            source_of_v: stores the previous vertex to reach that particular 
-                         vertex
-        Step 2:
-            Mark visited nodes
-        Step 3:
+        Algorithm from wiki: 
+            https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Algorithm
         ------------------------------------------------------------------------
             
         """
@@ -440,9 +271,8 @@ class WeightedGraphEnv:
         visited_nodes = []
         visited_nodes.append(from_node)
         if debug_print:
-            print ("ENV_GRAPH: _get_cost_to_all_nodes_dijkstra:: Visited Nodes: ", visited_nodes)
-            print ("ENV_GRAPH: _get_cost_to_all_nodes_dijkstra:: Seen Nodes: ", self.discovered_vertices)
-        nsteps = 0
+            print ("ENV_GRAPH: _get_cost_to_all_nodes_dijkstra:: Visited Vertices: ", self.visited_vertices)
+            print ("ENV_GRAPH: _get_cost_to_all_nodes_dijkstra:: Discovered Vertices: ", self.discovered_vertices)
         last_node = None
         cur_node = from_node
         cost_to_cur_node = 0
@@ -457,7 +287,7 @@ class WeightedGraphEnv:
             if cur_node not in self.visited_vertices:
                 if debug_print:
                     print ("\tNode: {} is not in visited vertices".format(cur_node))
-                    print ("\tExplored Nodes: {}".format(self.visited_vertices))
+                    print ("\Visited Vertices: {}".format(self.visited_vertices))
                 nodes_nearby = []
             else:
                 nodes_nearby = self.graph_explored[cur_node]
@@ -520,7 +350,6 @@ class WeightedGraphEnv:
                 print ("\tCurrent Queue: ", lowest_distance_priority_queue)
                 print ("\t","- "*30)
             # END debug print
-            nsteps += 1
         
         # BEGIN debug print
         if debug_print:
@@ -534,7 +363,7 @@ class WeightedGraphEnv:
         
     
     def _get_local_nodes_explored(self, node):
-        if node not in gt_explored:
+        if node not in self.discovered_vertices:
             return None
         else:
             return deepcopy(self.graph_explored[node])

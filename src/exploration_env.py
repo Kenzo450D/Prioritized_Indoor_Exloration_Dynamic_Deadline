@@ -109,46 +109,53 @@ class GraphExplorationEnvironment:
         node_reached = None
         if self.current_robot_position == goto_node:
             # -- robot is trying to reach the same robot
-            print("EXPLORATION ENV: step :: Robot is trying to back to the same node ", goto_node)
+            if debug_print:
+                print("EXPLORATION ENV: step :: Robot is trying to back to the same node ", goto_node)
             time_remaining = self.exploration_clock.update_time_limit()
             return self.get_state_consolidated()
         elif goto_node in self.discovered_states.keys():
             # -- robot is trying to reach a discovered node
-            print(f"EXPLORATION ENV: step :: Robot headed for discovered node: {goto_node}")
+            if debug_print:
+                print(f"EXPLORATION ENV: step :: Robot headed for discovered node: {goto_node}")
             if self.current_robot_position == self.source_discovered_states[goto_node]:
                 # -- robot is trying to reach a local node
-                print("EXPLORATION ENV: step :: Robot headed for local node")
+                if debug_print:
+                    print("EXPLORATION ENV: step :: Robot headed for local node")
                 node_reached, cost = self.env.go_local_node(goto_node)
                 # -- increment total cost
                 self.cost_incurred += cost
             else:
                 # -- robot is trying to reach a remote node
-                print("EXPLORATION ENV: step :: Robot headed for remote node {}".format(goto_node))
+                if debug_print:
+                    print("EXPLORATION ENV: step :: Robot headed for remote node {}".format(goto_node))
                 #input("EXPLORATION_ENV::STEP::Continue?")
                 node_reached, cost = self.env.go_remote_node(self.current_robot_position,goto_node)
                 # -- increment total cost
                 self.cost_incurred += cost
         elif goto_node == self.initial_robot_position:
             # -- robot is trying to reach home
-            print("EXPLORATION ENV: step :: Robot headed for home node")
+            if debug_print:
+                print("EXPLORATION ENV: step :: Robot headed for home node")
             node_reached, cost = self.env.go_remote_node(self.current_robot_position,goto_node)
             # -- increment total cost
             self.cost_incurred += cost
         else:
             # -- robot is trying to go for a node that is visited
             # this should be an error state
-            print ("EXPLORATION_ENV: Function step::")
-            print ("ERROR: Target vertex is not among discovered vertices.")
-            print ("\tTarget vertex not accepted")
-            print ("\tTarget Vertex:  ", goto_node)
-            print ("\tCurrent vertex: ", self.current_robot_position)
+            if debug_print:
+                print ("EXPLORATION_ENV: Function step::")
+                print ("ERROR: Target vertex is not among discovered vertices.")
+                print ("\tTarget vertex not accepted")
+                print ("\tTarget Vertex:  ", goto_node)
+                print ("\tCurrent vertex: ", self.current_robot_position)
             raise ValueError
         
         # -- update current node
         self.current_robot_position = node_reached
-        print("EXPLORATION ENV: step :: Current robot position = ", self.current_robot_position)
-        print("EXPLORATION ENV: step :: Step  Cost Incurred: ", cost)
-        print("EXPLORATION ENV: step :: Total Cost Incurred: ", self.cost_incurred)
+        if debug_print:
+            print("EXPLORATION ENV: step :: Current robot position = ", self.current_robot_position)
+            print("EXPLORATION ENV: step :: Step  Cost Incurred: ", cost)
+            print("EXPLORATION ENV: step :: Total Cost Incurred: ", self.cost_incurred)
         
         # -- update time limit
         if cost == 0:  #for transfer to the same node
@@ -156,7 +163,8 @@ class GraphExplorationEnvironment:
         while (cost != 0):
             time_remaining = self.exploration_clock.update_time_limit()
             cost = cost -1
-        print ("EXPLORATION ENV: step:: Time Remaining = ", time_remaining)
+        if debug_print:
+            print ("EXPLORATION ENV: step:: Time Remaining = ", time_remaining)
         return self.get_state_consolidated()
     
     def get_time_limit(self):

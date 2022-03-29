@@ -44,7 +44,7 @@ class PriorityExplorationAgent:
         print ("PEA: Initialized, current position: {}".format(self.current_position))
     
   
-    def explore(self):
+    def explore(self, debug_print = False):
         observation = self.env.get_state_consolidated()
         self._print_observation_to_file(observation)
         self._print_observation_to_screen(observation)
@@ -64,12 +64,14 @@ class PriorityExplorationAgent:
             # -- check if exploration is complete
             if len(observation[1]) == 0:
                 # we do not have places to move
-                print("PEA: Region completely explored as discovered vertices are unavailable")
+                if debug_print:
+                    print("PEA: Region completely explored as discovered vertices are unavailable")
                 # -- if robot is not in starting node, go to starting node
                 if observation[0] == self.init_position:
                     break
                 else:
-                    print("PEA: Agent not in starting position, go back to starting position")
+                    if debug_print:
+                        print("PEA: Agent not in starting position, go back to starting position")
                     observation = self.env.step(self.init_position)
             else:
                 # -- if time remaining is unknown
@@ -87,8 +89,9 @@ class PriorityExplorationAgent:
                 # -- take the action
                 observation = self.env.step(action_node)
             
-            # -- save the results
+            # -- print the results to screen
             self._print_observation_to_file(observation)
+            # -- print the results to file
             self._print_observation_to_screen(observation)
         
         # -- output the list of visited vertices to file
@@ -173,14 +176,17 @@ class PriorityExplorationAgent:
             print ("PEA: _choose_greedy_action_time:: Action stay: ", action_stay)
         
         if distance_current_home == t_r: # if cost to home is equals time remaining
-            print ("PEA: _choose_greedy_action_time:: distance current home = t_r")
+            if debug_print:
+                print ("PEA: _choose_greedy_action_time:: distance current home = t_r")
             return action_home
         elif (distance_current_home + 1) == t_r: # if cost to home is equals time remaining
-            print ("PEA: _choose_greedy_action_time:: distance current home +1 = t_r")
+            if debug_print:
+                print ("PEA: _choose_greedy_action_time:: distance current home +1 = t_r")
             return action_home
         elif distance_current_home > t_r: # if cost to home is greater than time remaining
-            print ("PEA: _choose_greedy_action_time:: Return home is not possible")
-            print ("                                  exploring the rest of the environment")
+            if debug_print:
+                print ("PEA: _choose_greedy_action_time:: Return home is not possible")
+                print ("                                  exploring the rest of the environment")
             flag_return_possible = False
             # Return home is NOT POSSIBLE
             # -- get the vertex to visit without deadline
@@ -216,9 +222,10 @@ class PriorityExplorationAgent:
             return (action[0], action[1])
         # -- if action is generated to go to any other node
         else:
-            print ("PEA: choose_greedy_action_time_limit::  Action selected: {}".format(action))
-            print ("PEA: choose_greedy_action_time_limit::  Cost: {}".format(action[1]))
-            print ("PEA: choose_greedy_action_time_limit::  return: ({},{})".format(action[1], action[3]))
+            if debug_print:
+                print ("PEA: choose_greedy_action_time_limit::  Action selected: {}".format(action))
+                print ("PEA: choose_greedy_action_time_limit::  Cost: {}".format(action[1]))
+                print ("PEA: choose_greedy_action_time_limit::  return: ({},{})".format(action[1], action[3]))
             return (action[1], action[3])
 
 
@@ -281,6 +288,7 @@ class PriorityExplorationAgent:
                 heapq.heappush(priority_queue, (self.node_priority[node_type], node_cost, dist_to_home[node_idx], Wrapper(node_idx)))
         return
 
+
     def _read_node_priority(self, filename):
         """ Reads node priority for an exploration agent.
         """
@@ -296,7 +304,8 @@ class PriorityExplorationAgent:
                 node_type = elems[0]
                 node_priority[node_type] = float(elems[1])
         return node_priority
-    
+
+
     def _print_observation_to_screen(self, observation):
         print ("*="*40)
         print ("PEA: Current State: ", observation[0])
@@ -304,7 +313,8 @@ class PriorityExplorationAgent:
         print ("PEA: time remaining: ", observation[2])
         print ("PEA: cost total: ", observation[3])
         print ("*="*40)
-    
+
+
     def _print_observation_to_file(self, observation):
         sample = open(self.output_filename, 'a') 
         print ("PEA: Current State: ", observation[0], file=sample)
@@ -314,14 +324,16 @@ class PriorityExplorationAgent:
         print ("PEA: cost total: ", observation[3], file=sample)
         print ("-"*80, file=sample)
         sample.close()
-    
+
+
     def _dictionary_to_string(self, idx_cost_dict):
         str_return = ""
         for idx, cost in idx_cost_dict.items():
             str_return = "{}{} {}\n".format(str_return, idx, cost)
         str_return = str_return[0:-1]
         return str_return
-    
+
+
     def _print_visited_nodes_to_file(self):
         sample = open(self.output_filename, 'a')
         for node in self.visited_nodes:

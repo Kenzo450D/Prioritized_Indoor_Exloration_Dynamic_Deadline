@@ -1,0 +1,10 @@
+@inproceedings{DattaA21,
+author = "Sayantan Datta and Srinivas Akella",
+title = "Prioritized Indoor Exploration with a Dynamic Deadline",
+booktitle = "IEEE/RSJ International Conference on Intelligent Robots and Systems
+(IROS)",
+pages = "3108-3114",
+month = sep,
+year = "2021",
+address = "Prague, Czech Republic"
+}

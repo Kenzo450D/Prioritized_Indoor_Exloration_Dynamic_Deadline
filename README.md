@@ -2,7 +2,7 @@
 
 ## Example
 
-execute `python3 priority_greedy_single-corridor.py`
+execute `python3 priority_greedy_straight-corridor.py`
 
 ## Parameters
 

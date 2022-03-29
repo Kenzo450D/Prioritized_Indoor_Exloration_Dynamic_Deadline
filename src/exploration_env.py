@@ -124,7 +124,7 @@ class GraphExplorationEnvironment:
             else:
                 # -- robot is trying to reach a remote node
                 print("EXPLORATION ENV: step :: Robot headed for remote node {}".format(goto_node))
-                input("EXPLORATION_ENV::STEP::Continue?")
+                #input("EXPLORATION_ENV::STEP::Continue?")
                 node_reached, cost = self.env.go_remote_node(self.current_robot_position,goto_node)
                 # -- increment total cost
                 self.cost_incurred += cost

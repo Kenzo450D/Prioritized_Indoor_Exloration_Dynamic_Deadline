@@ -13,8 +13,8 @@ env_params = get_env_params(environment_name)
 agent_priority_filename = get_agent_files(agent_name)
 
 
-t_a = 20
-t_r0 = 30
+t_a = 20 # exploration before deadline is imposed
+t_r0 = 30 # exploration with deadline
 outfile = 'tmp.txt'
 
 
